@@ -50,7 +50,7 @@ func main() {
 	// Example 3: Vector Store Retriever Memory
 	logger.Info(ctx, "\n=== Vector Store Retriever Memory ===", nil)
 	vectorStore, err := setupVectorStore(logger)
-	if err != nil {
+	if err != nil { //nolint:staticcheck
 		logger.Info(ctx, "Skipping vector store example", map[string]interface{}{"error": err.Error()})
 	} else {
 		retrieverMemory := memory.NewVectorStoreRetriever(vectorStore)

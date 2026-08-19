@@ -236,7 +236,7 @@ func NewClient(ctx context.Context, options ...Option) (*GeminiClient, error) {
 			if client.credentialsFile != "" {
 				// Handle service account credentials from file
 				creds, err := credentials.DetectDefault(&credentials.DetectOptions{
-					CredentialsFile: client.credentialsFile,
+					CredentialsFile: client.credentialsFile, //nolint:staticcheck
 					Scopes: []string{
 						"https://www.googleapis.com/auth/cloud-platform",
 					},

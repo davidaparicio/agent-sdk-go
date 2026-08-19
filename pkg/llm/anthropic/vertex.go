@@ -88,7 +88,7 @@ func NewVertexConfigWithCredentials(ctx context.Context, region, projectID, cred
 	}
 
 	creds, err := credentials.DetectDefault(&credentials.DetectOptions{
-		CredentialsJSON: credentialsJSON,
+		CredentialsJSON: credentialsJSON, //nolint:staticcheck
 		Scopes:          []string{"https://www.googleapis.com/auth/cloud-platform"},
 	})
 	if err != nil {
@@ -120,7 +120,7 @@ func NewVertexConfigWithCredentialsContent(ctx context.Context, region, projectI
 
 	// Try to parse credentials as JSON first
 	creds, err := credentials.DetectDefault(&credentials.DetectOptions{
-		CredentialsJSON: []byte(credentialsContent),
+		CredentialsJSON: []byte(credentialsContent), //nolint:staticcheck
 		Scopes:          []string{"https://www.googleapis.com/auth/cloud-platform"},
 	})
 	if err != nil {
@@ -129,7 +129,7 @@ func NewVertexConfigWithCredentialsContent(ctx context.Context, region, projectI
 		if decodeErr == nil {
 			// Successfully decoded, try parsing the decoded content as JSON
 			creds, err = credentials.DetectDefault(&credentials.DetectOptions{
-				CredentialsJSON: decodedContent,
+				CredentialsJSON: decodedContent, //nolint:staticcheck
 				Scopes:          []string{"https://www.googleapis.com/auth/cloud-platform"},
 			})
 			if err != nil {

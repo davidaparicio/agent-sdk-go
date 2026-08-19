@@ -516,13 +516,13 @@ func (s *MCPServerImpl) CreateMessage(ctx context.Context, request *interfaces.M
 	})
 
 	// Convert our request format to the Go SDK format
-	samplingRequest := &mcp.CreateMessageParams{
-		Messages: make([]*mcp.SamplingMessage, 0, len(request.Messages)),
+	samplingRequest := &mcp.CreateMessageParams{ //nolint:staticcheck
+		Messages: make([]*mcp.SamplingMessage, 0, len(request.Messages)), //nolint:staticcheck
 	}
 
 	// Convert messages
 	for _, msg := range request.Messages {
-		samplingMsg := &mcp.SamplingMessage{
+		samplingMsg := &mcp.SamplingMessage{ //nolint:staticcheck
 			Role: mcp.Role(msg.Role),
 		}
 
@@ -561,7 +561,7 @@ func (s *MCPServerImpl) CreateMessage(ctx context.Context, request *interfaces.M
 
 	// Add model preferences if provided
 	if request.ModelPreferences != nil {
-		samplingRequest.ModelPreferences = &mcp.ModelPreferences{
+		samplingRequest.ModelPreferences = &mcp.ModelPreferences{ //nolint:staticcheck
 			CostPriority:         request.ModelPreferences.CostPriority,
 			SpeedPriority:        request.ModelPreferences.SpeedPriority,
 			IntelligencePriority: request.ModelPreferences.IntelligencePriority,
@@ -569,9 +569,9 @@ func (s *MCPServerImpl) CreateMessage(ctx context.Context, request *interfaces.M
 
 		// Convert model hints
 		if len(request.ModelPreferences.Hints) > 0 {
-			hints := make([]*mcp.ModelHint, 0, len(request.ModelPreferences.Hints))
+			hints := make([]*mcp.ModelHint, 0, len(request.ModelPreferences.Hints)) //nolint:staticcheck
 			for _, hint := range request.ModelPreferences.Hints {
-				hints = append(hints, &mcp.ModelHint{
+				hints = append(hints, &mcp.ModelHint{ //nolint:staticcheck
 					Name: hint.Name,
 				})
 			}

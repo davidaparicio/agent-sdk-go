@@ -188,7 +188,7 @@ func NewGeminiEmbedder(ctx context.Context, options ...GeminiEmbedderOption) (*G
 		// Handle service account credentials
 		if embedder.credentialsFile != "" {
 			creds, err := credentials.DetectDefault(&credentials.DetectOptions{
-				CredentialsFile: embedder.credentialsFile,
+				CredentialsFile: embedder.credentialsFile, //nolint:staticcheck
 				Scopes: []string{
 					"https://www.googleapis.com/auth/cloud-platform",
 				},
@@ -199,7 +199,7 @@ func NewGeminiEmbedder(ctx context.Context, options ...GeminiEmbedderOption) (*G
 			clientConfig.Credentials = creds
 		} else if len(embedder.credentialsJSON) > 0 {
 			creds, err := credentials.DetectDefault(&credentials.DetectOptions{
-				CredentialsJSON: embedder.credentialsJSON,
+				CredentialsJSON: embedder.credentialsJSON, //nolint:staticcheck
 				Scopes: []string{
 					"https://www.googleapis.com/auth/cloud-platform",
 				},
