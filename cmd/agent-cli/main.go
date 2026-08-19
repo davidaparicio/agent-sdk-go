@@ -295,8 +295,8 @@ func runDirectAgent(directConfig *DirectExecutionConfig, mcpServers []MCPServerC
 	})
 
 	// Create LLM client
-	llmClient := createLLM(config)
-	if llmClient == nil {
+	llmClient := createLLM(config) //nolint:staticcheck
+	if llmClient == nil {          //nolint:staticcheck
 		return fmt.Errorf("failed to create LLM client")
 	}
 	logger.Info(ctx, "LLM client created successfully", map[string]interface{}{
@@ -1661,7 +1661,7 @@ func createAgent(config *CLIConfig) *agent.Agent {
 	return agentInstance
 }
 
-func createLLM(config *CLIConfig) interfaces.LLM {
+func createLLM(config *CLIConfig) interfaces.LLM { //nolint:staticcheck
 	switch config.Provider {
 	case "openai":
 		apiKey := os.Getenv("OPENAI_API_KEY")

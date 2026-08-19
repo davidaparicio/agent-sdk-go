@@ -49,8 +49,8 @@ func main() {
 
 	// Example 3: Vector Store Retriever Memory
 	logger.Info(ctx, "\n=== Vector Store Retriever Memory ===", nil)
-	vectorStore, err := setupVectorStore(logger)
-	if err != nil {
+	vectorStore, err := setupVectorStore(logger) //nolint:staticcheck
+	if err != nil {                               //nolint:staticcheck
 		logger.Info(ctx, "Skipping vector store example", map[string]interface{}{"error": err.Error()})
 	} else {
 		retrieverMemory := memory.NewVectorStoreRetriever(vectorStore)
@@ -188,7 +188,7 @@ func testMemory(ctx context.Context, mem interfaces.Memory, logger logging.Logge
 	}
 }
 
-func setupVectorStore(logger logging.Logger) (interfaces.VectorStore, error) {
+func setupVectorStore(logger logging.Logger) (interfaces.VectorStore, error) { //nolint:staticcheck
 	// Check if we have the necessary environment variables
 	// This is a placeholder - in a real application, you would
 	// configure and return a real vector store

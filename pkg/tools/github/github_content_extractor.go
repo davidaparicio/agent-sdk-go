@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/Ingenimax/agent-sdk-go/pkg/interfaces"
-	"github.com/google/go-github/v45/github"
+	"github.com/google/go-github/v67/github"
 	"golang.org/x/oauth2"
 )
 
