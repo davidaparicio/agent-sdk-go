@@ -1658,7 +1658,7 @@ func createAgent(config *CLIConfig) *agent.Agent {
 	return agentInstance
 }
 
-func createLLM(config *CLIConfig) interfaces.LLM {
+func createLLM(config *CLIConfig) interfaces.LLM { //nolint:staticcheck
 	switch config.Provider {
 	case "openai":
 		apiKey := os.Getenv("OPENAI_API_KEY")
