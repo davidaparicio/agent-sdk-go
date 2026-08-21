@@ -295,10 +295,7 @@ func runDirectAgent(directConfig *DirectExecutionConfig, mcpServers []MCPServerC
 	})
 
 	// Create LLM client
-	llmClient := createLLM(config) //nolint:staticcheck
-	if llmClient == nil {          //nolint:staticcheck
-		return fmt.Errorf("failed to create LLM client")
-	}
+	llmClient := createLLM(config)
 	logger.Info(ctx, "LLM client created successfully", map[string]interface{}{
 		"provider": config.Provider,
 		"model":    config.Model,
