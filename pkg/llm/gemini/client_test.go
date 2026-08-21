@@ -101,8 +101,12 @@ func TestNewClient(t *testing.T) {
 		{
 			name:      "Vertex AI backend with project ID and API key",
 			options:   []Option{WithBackend(genai.BackendVertexAI), WithProjectID("test-project"), WithAPIKey("test-api-key")},
-			wantError: true, // mutually exclusive in genai library
-			checkFunc: nil,
+			wantError: false,
+			checkFunc: func(t *testing.T, client *GeminiClient) {
+				assert.Equal(t, genai.BackendVertexAI, client.backend)
+				assert.Equal(t, "test-project", client.projectID)
+				assert.Equal(t, "test-api-key", client.apiKey)
+			},
 		},
 		{
 			name:      "Vertex AI backend without any authentication",

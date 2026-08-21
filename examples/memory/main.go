@@ -47,15 +47,9 @@ func main() {
 	)
 	testMemory(ctx, summaryMemory, logger)
 
-	// Example 3: Vector Store Retriever Memory
+	// Example 3: Vector Store Retriever Memory (skipped - not implemented)
 	logger.Info(ctx, "\n=== Vector Store Retriever Memory ===", nil)
-	vectorStore, err := setupVectorStore(logger)
-	if err != nil {
-		logger.Info(ctx, "Skipping vector store example", map[string]interface{}{"error": err.Error()})
-	} else {
-		retrieverMemory := memory.NewVectorStoreRetriever(vectorStore)
-		testMemory(ctx, retrieverMemory, logger)
-	}
+	logger.Info(ctx, "Skipping vector store example", map[string]interface{}{"reason": "vector store setup not implemented"})
 
 	// Example 4: Redis Memory
 	logger.Info(ctx, "\n=== Redis Memory ===", nil)
@@ -186,20 +180,6 @@ func testMemory(ctx context.Context, mem interfaces.Memory, logger logging.Logge
 	} else {
 		logger.Info(ctx, fmt.Sprintf("Memory not cleared, %d messages remaining", len(clearedMessages)), nil)
 	}
-}
-
-func setupVectorStore(logger logging.Logger) (interfaces.VectorStore, error) {
-	// Check if we have the necessary environment variables
-	// This is a placeholder - in a real application, you would
-	// configure and return a real vector store
-
-	// Log that we're using a placeholder implementation
-	logger.Info(context.Background(), "Vector store setup is a placeholder implementation", nil)
-
-	// For example, to use a simple in-memory vector store:
-	// return vectorstore.NewInMemory(), nil
-
-	return nil, fmt.Errorf("vector store setup not implemented - skipping example")
 }
 
 func setupRedisClient() (*redis.Client, error) {
