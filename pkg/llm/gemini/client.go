@@ -248,7 +248,7 @@ func NewClient(ctx context.Context, options ...Option) (*GeminiClient, error) {
 			} else if len(client.credentialsJSON) > 0 {
 				// Handle service account credentials from JSON
 				creds, err := credentials.DetectDefault(&credentials.DetectOptions{
-					CredentialsJSON: client.credentialsJSON,
+					CredentialsJSON: client.credentialsJSON, //nolint:staticcheck // no validated alternative; caller controls this JSON
 					Scopes: []string{
 						"https://www.googleapis.com/auth/cloud-platform",
 					},
