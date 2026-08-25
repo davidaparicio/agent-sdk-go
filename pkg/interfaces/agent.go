@@ -16,4 +16,5 @@ type ExecutionSummary struct {
 	ExecutionTimeMs int64
 	UsedTools       []string
 	UsedSubAgents   []string
+	UsageByModel    map[string]TokenUsage
 }

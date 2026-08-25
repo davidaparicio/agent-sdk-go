@@ -41,9 +41,11 @@ func (m *MockLLMForDetailed) GenerateDetailed(ctx context.Context, prompt string
 		Model:      "mock-model",
 		StopReason: "complete",
 		Usage: &interfaces.TokenUsage{
-			InputTokens:  100,
-			OutputTokens: 50,
-			TotalTokens:  150,
+			InputTokens:              100,
+			OutputTokens:             50,
+			TotalTokens:              150,
+			CacheCreationInputTokens: 10,
+			CacheReadInputTokens:     5,
 		},
 		Metadata: map[string]interface{}{
 			"provider": "mock",
@@ -112,10 +114,19 @@ func TestAgentRunDetailed(t *testing.T) {
 	assert.Equal(t, 100, response.Usage.InputTokens)
 	assert.Equal(t, 50, response.Usage.OutputTokens)
 	assert.Equal(t, 150, response.Usage.TotalTokens)
+	assert.Equal(t, 10, response.Usage.CacheCreationInputTokens)
+	assert.Equal(t, 5, response.Usage.CacheReadInputTokens)
 
 	// Verify execution summary
 	assert.Equal(t, 1, response.ExecutionSummary.LLMCalls)
 	assert.True(t, response.ExecutionSummary.ExecutionTimeMs >= 0)
+	assert.Equal(t, interfaces.TokenUsage{
+		InputTokens:              100,
+		OutputTokens:             50,
+		TotalTokens:              150,
+		CacheCreationInputTokens: 10,
+		CacheReadInputTokens:     5,
+	}, response.ExecutionSummary.UsageByModel["mock-model"])
 
 	// Verify metadata
 	assert.NotNil(t, response.Metadata)
@@ -224,18 +235,28 @@ func TestUsageTrackerAggregation(t *testing.T) {
 
 	// Add multiple LLM usages
 	usage1 := &interfaces.TokenUsage{
-		InputTokens:  100,
-		OutputTokens: 50,
-		TotalTokens:  150,
+		InputTokens:              100,
+		OutputTokens:             50,
+		TotalTokens:              150,
+		CacheCreationInputTokens: 8,
 	}
 	tracker.addLLMUsage(usage1, "model1")
 
 	usage2 := &interfaces.TokenUsage{
-		InputTokens:  200,
-		OutputTokens: 75,
-		TotalTokens:  275,
+		InputTokens:          200,
+		OutputTokens:         75,
+		TotalTokens:          275,
+		ReasoningTokens:      12,
+		CacheReadInputTokens: 6,
 	}
 	tracker.addLLMUsage(usage2, "model2")
+
+	usage3 := &interfaces.TokenUsage{
+		InputTokens:  20,
+		OutputTokens: 10,
+		TotalTokens:  30,
+	}
+	tracker.addLLMUsage(usage3, "model1")
 
 	// Add tool calls
 	tracker.addToolCall("tool1")
@@ -249,12 +270,29 @@ func TestUsageTrackerAggregation(t *testing.T) {
 	totalUsage, execSummary, primaryModel := tracker.getResults()
 
 	// Verify aggregated usage
-	assert.Equal(t, 300, totalUsage.InputTokens)  // 100 + 200
-	assert.Equal(t, 125, totalUsage.OutputTokens) // 50 + 75
-	assert.Equal(t, 425, totalUsage.TotalTokens)  // 150 + 275
+	assert.Equal(t, 320, totalUsage.InputTokens)  // 100 + 200 + 20
+	assert.Equal(t, 135, totalUsage.OutputTokens) // 50 + 75 + 10
+	assert.Equal(t, 455, totalUsage.TotalTokens)  // 150 + 275 + 30
+	assert.Equal(t, 12, totalUsage.ReasoningTokens)
+	assert.Equal(t, 8, totalUsage.CacheCreationInputTokens)
+	assert.Equal(t, 6, totalUsage.CacheReadInputTokens)
+
+	assert.Equal(t, interfaces.TokenUsage{
+		InputTokens:              120,
+		OutputTokens:             60,
+		TotalTokens:              180,
+		CacheCreationInputTokens: 8,
+	}, execSummary.UsageByModel["model1"])
+	assert.Equal(t, interfaces.TokenUsage{
+		InputTokens:          200,
+		OutputTokens:         75,
+		TotalTokens:          275,
+		ReasoningTokens:      12,
+		CacheReadInputTokens: 6,
+	}, execSummary.UsageByModel["model2"])
 
 	// Verify execution summary
-	assert.Equal(t, 2, execSummary.LLMCalls)
+	assert.Equal(t, 3, execSummary.LLMCalls)
 	assert.Equal(t, 2, execSummary.ToolCalls)
 	assert.Equal(t, int64(1500), execSummary.ExecutionTimeMs)
 	assert.Len(t, execSummary.UsedTools, 2)

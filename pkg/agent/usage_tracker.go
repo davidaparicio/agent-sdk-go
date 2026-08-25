@@ -16,6 +16,7 @@ type usageTracker struct {
 	execSummary  *interfaces.ExecutionSummary
 	detailed     bool
 	primaryModel string
+	usageByModel map[string]*interfaces.TokenUsage
 	mu           sync.Mutex
 }
 
@@ -25,8 +26,10 @@ func newUsageTracker(detailed bool) *usageTracker {
 		execSummary: &interfaces.ExecutionSummary{
 			UsedTools:     []string{},
 			UsedSubAgents: []string{},
+			UsageByModel:  map[string]interfaces.TokenUsage{},
 		},
-		detailed: detailed,
+		detailed:     detailed,
+		usageByModel: map[string]*interfaces.TokenUsage{},
 	}
 }
 
@@ -42,11 +45,29 @@ func (ut *usageTracker) addLLMUsage(usage *interfaces.TokenUsage, model string) 
 	ut.totalUsage.OutputTokens += usage.OutputTokens
 	ut.totalUsage.TotalTokens += usage.TotalTokens
 	ut.totalUsage.ReasoningTokens += usage.ReasoningTokens
+	ut.totalUsage.CacheCreationInputTokens += usage.CacheCreationInputTokens
+	ut.totalUsage.CacheReadInputTokens += usage.CacheReadInputTokens
 	ut.execSummary.LLMCalls++
 
 	if ut.primaryModel == "" && model != "" {
 		ut.primaryModel = model
 	}
+
+	if model == "" {
+		model = "unknown"
+	}
+
+	modelUsage := ut.usageByModel[model]
+	if modelUsage == nil {
+		modelUsage = &interfaces.TokenUsage{}
+		ut.usageByModel[model] = modelUsage
+	}
+	modelUsage.InputTokens += usage.InputTokens
+	modelUsage.OutputTokens += usage.OutputTokens
+	modelUsage.TotalTokens += usage.TotalTokens
+	modelUsage.ReasoningTokens += usage.ReasoningTokens
+	modelUsage.CacheCreationInputTokens += usage.CacheCreationInputTokens
+	modelUsage.CacheReadInputTokens += usage.CacheReadInputTokens
 }
 
 func (ut *usageTracker) addToolCall(toolName string) {
@@ -85,6 +106,11 @@ func (ut *usageTracker) getResults() (*interfaces.TokenUsage, *interfaces.Execut
 
 	ut.mu.Lock()
 	defer ut.mu.Unlock()
+
+	ut.execSummary.UsageByModel = make(map[string]interfaces.TokenUsage, len(ut.usageByModel))
+	for model, usage := range ut.usageByModel {
+		ut.execSummary.UsageByModel[model] = *usage
+	}
 
 	return ut.totalUsage, ut.execSummary, ut.primaryModel
 }

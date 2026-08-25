@@ -91,6 +91,13 @@ func main() {
 	if len(detailedResponse.ExecutionSummary.UsedSubAgents) > 0 {
 		fmt.Printf("  Sub-Agents Called: %v\n", detailedResponse.ExecutionSummary.UsedSubAgents)
 	}
+	if len(detailedResponse.ExecutionSummary.UsageByModel) > 0 {
+		fmt.Printf("  Usage By Model:\n")
+		for model, usage := range detailedResponse.ExecutionSummary.UsageByModel {
+			fmt.Printf("    %s: %d total tokens (input: %d, output: %d)\n",
+				model, usage.TotalTokens, usage.InputTokens, usage.OutputTokens)
+		}
+	}
 
 	// Display metadata
 	fmt.Printf("\nMetadata:\n")
