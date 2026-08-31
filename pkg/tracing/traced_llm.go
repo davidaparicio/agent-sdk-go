@@ -287,11 +287,19 @@ func (m *TracedLLM) GenerateWithToolsStream(ctx context.Context, prompt string, 
 	// Start a goroutine to proxy events and handle span completion
 	go func() {
 		defer close(wrappedChan)
+
+		var streamErr error
+
 		defer func() {
 			// When streaming is complete, create tool call spans and end main span
 			endTime := time.Now()
 			duration := endTime.Sub(startTime)
 			span.SetAttribute("duration_ms", duration.Milliseconds())
+
+			// Record streaming error on span if one was captured (#328)
+			if streamErr != nil {
+				span.RecordError(streamErr)
+			}
 
 			// Get tool calls from context and create spans using TraceGeneration if any exist
 			toolCalls := GetToolCallsFromContext(ctx)
@@ -306,25 +314,40 @@ func (m *TracedLLM) GenerateWithToolsStream(ctx context.Context, prompt string, 
 					model = streamingLLM.Name()
 				}
 
+				// Build metadata, including error if the stream failed mid-flight (#328)
+				metadata := map[string]any{
+					"streaming": true,
+					"tools":     len(tools),
+				}
+				if streamErr != nil {
+					metadata["error"] = streamErr.Error()
+				}
+
+				responseText := "streaming_response"
+				if streamErr != nil {
+					if m.shouldIncludeContent() {
+						responseText = "<error>"
+					} else {
+						responseText = "<redacted>"
+					}
+				}
+
 				// Create spans using TraceGeneration which handles tool calls correctly
 				if adapter, ok := m.tracer.(*OTELTracerAdapter); ok {
-					_, _ = adapter.otelTracer.TraceGeneration(ctx, model, prompt, "streaming_response", startTime, endTime, map[string]any{ //nolint:gosec
-						"streaming": true,
-						"tools":     len(tools),
-					})
+					_, _ = adapter.otelTracer.TraceGeneration(ctx, model, prompt, responseText, startTime, endTime, metadata) //nolint:gosec
 				} else if tracer, ok := m.tracer.(*OTELLangfuseTracer); ok {
-					_, _ = tracer.TraceGeneration(ctx, model, prompt, "streaming_response", startTime, endTime, map[string]any{ //nolint:gosec
-						"streaming": true,
-						"tools":     len(tools),
-					})
+					_, _ = tracer.TraceGeneration(ctx, model, prompt, responseText, startTime, endTime, metadata) //nolint:gosec
 				}
 			}
 
 			span.End()
 		}()
 
-		// Proxy all events from the original channel
+		// Proxy all events from the original channel, capturing any error event (#328)
 		for event := range originalChan {
+			if event.Type == interfaces.StreamEventError && event.Error != nil {
+				streamErr = event.Error
+			}
 			wrappedChan <- event
 		}
 	}()
